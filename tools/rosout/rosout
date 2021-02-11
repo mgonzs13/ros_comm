@@ -57,7 +57,7 @@ class RsoutNode:
 
 
 def main():
-    rospy.init_node("logs_to_mongo_node")
+    rospy.init_node("rosout")
     RsoutNode()
     rospy.spin()
 
