@@ -39,6 +39,7 @@
 #include "ros/advertise_options.h"
 #include "ros/names.h"
 #include "ros/param.h"
+#include  <stdio.h>
 
 #include <rosgraph_msgs/Log.h>
 
@@ -99,19 +100,48 @@ void ROSOutAppender::log(::ros::console::Level level, const char* str, const cha
   {
     msg->level = rosgraph_msgs::Log::FATAL;
   }
+
+
+  char *username = getenv("USERNAME");
+  char *ros_master_uri = getenv("ROS_MASTER_URI");
+  char *ros_ip = getenv("ROS_IP");;
+  char *ros_hostname = getenv("ROS_HOSTNAME");
+
+
+  if(username == NULL){
+    username = (char *)"";
+  }
+
+  if(ros_master_uri == NULL){
+    ros_master_uri = (char *)"";
+  }
+
+  if(ros_ip == NULL){
+    ros_ip = (char *)"";
+  }
+
+  if(ros_hostname == NULL){
+    ros_hostname = (char *)"";
+  }
+
+
   msg->name = this_node::getName();
   msg->msg = str;
   msg->file = file;
   msg->function = function;
   msg->line = line;
-  
+  msg->username = username;
+  msg->ros_master_uri = ros_master_uri;
+  msg->ros_ip = ros_ip;
+  msg->ros_hostname = ros_hostname;
+
   // check parameter server/cache for omit_topics flag
   // the same parameter is checked in rosout.py for the same purpose
   ros::param::getCached("/rosout_disable_topics_generation", disable_topics_);
 
-  if (!disable_topics_){
+  /*if (!disable_topics_){
     this_node::getAdvertisedTopics(msg->topics);
-  }
+  }*/
 
   if (level == ::ros::console::levels::Fatal || level == ::ros::console::levels::Error)
   {
