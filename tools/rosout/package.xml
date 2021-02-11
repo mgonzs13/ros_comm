@@ -20,4 +20,6 @@
 
   <run_depend>roscpp</run_depend>
   <run_depend>rosgraph_msgs</run_depend>
+  <buildtool_depend>python3-setuptools</buildtool_depend>
+
 </package>

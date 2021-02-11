@@ -5,14 +5,22 @@ if(NOT WIN32)
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "-Wall;-Wextra")
 endif()
 
-find_package(catkin REQUIRED COMPONENTS roscpp rosgraph_msgs)
+find_package(catkin REQUIRED COMPONENTS rospy roscpp rosgraph_msgs)
 
 catkin_package()
 
-include_directories(${catkin_INCLUDE_DIRS})
+#include_directories(${catkin_INCLUDE_DIRS})
 
-add_executable(rosout rosout.cpp)
-target_link_libraries(rosout ${catkin_LIBRARIES})
+#add_executable(rosout rosout.cpp)
+#target_link_libraries(rosout ${catkin_LIBRARIES})
 
-install(TARGETS rosout
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#install(TARGETS rosout
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+
+catkin_install_python(PROGRAMS 
+  rosout
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+

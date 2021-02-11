@@ -1,0 +1,66 @@
+
+import datetime
+import rospy
+import pymongo
+from rosgraph_msgs.msg import Log
+from std_msgs.msg import Int32
+
+
+class RsoutNode:
+
+    def __init__(self):
+
+        self.logs_count = 0
+
+        mongo_uri = rospy.get_param(
+            "~logs_to_mongo_uri", "mongodb://127.0.0.1:27017/")
+
+        client = pymongo.MongoClient(mongo_uri,
+                                     tls=True,
+                                     tlsAllowInvalidCertificates=True)
+        db = client["ros_logs"]
+        self.__collection = db["logs"]
+
+        self.__log_level_dict = {
+            Log.DEBUG: "DEBUG",
+            Log.INFO: "INFO",
+            Log.WARN: "WARN",
+            Log.ERROR: "ERROR",
+            Log.FATAL: "FATAL"
+        }
+
+        self.__pub = rospy.Publisher("/logs_count", Int32, queue_size=-1)
+
+        rospy.Subscriber("/rosout", Log, self.__callback, queue_size=-1)
+
+    def __callback(self, msg: Log):
+        msg_dict = {
+            "username": msg.username,
+            "ros_master_uri": msg.ros_master_uri,
+            "ros_ip": msg.ros_ip,
+            "ros_hostname": msg.ros_hostname,
+            "level": self.__log_level_dict[msg.level],
+            "node": msg.name,
+            "msg": msg.msg,
+            "file": msg.file,
+            "function": msg.function,
+            "line": msg.line,
+            "creation_date": datetime.datetime.fromtimestamp(msg.header.stamp.to_sec()).strftime("%m/%d/%Y, %H:%M:%S.%fZ"),
+            "save_date": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S.%fZ"),
+            # "topics": msg.topics
+        }
+
+        self.__collection.insert_one(msg_dict)
+
+        self.logs_count += 1
+        self.__pub.publish(self.logs_count)
+
+
+def main():
+    rospy.init_node("logs_to_mongo_node")
+    RsoutNode()
+    rospy.spin()
+
+
+if __name__ == '__main__':
+    main()
