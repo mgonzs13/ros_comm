@@ -43,7 +43,8 @@ StatisticsLogger::StatisticsLogger()
 
 void StatisticsLogger::init(const SubscriptionCallbackHelperPtr& helper) {
   hasHeader_ = helper->hasHeader();
-  param::param("/enable_statistics", enable_statistics, false);
+  ros::param::set("/enable_statistics", true);
+  param::param("/enable_statistics", enable_statistics, true);
   param::param("/statistics_window_min_elements", min_elements, 10);
   param::param("/statistics_window_max_elements", max_elements, 100);
   param::param("/statistics_window_min_size", min_window, 4);

@@ -54,7 +54,8 @@ class SubscriberStatisticsLogger():
         # disable statistics if node can't talk to parameter server
         # which is the case in unit tests
         try:
-            return rospy.get_param("/enable_statistics", False)
+            rospy.set_param("/enable_statistics", True)
+            return rospy.get_param("/enable_statistics", True)
         except Exception:
             return False
 
@@ -71,8 +72,10 @@ class SubscriberStatisticsLogger():
         # Range of acceptable messages in window.
         # Window size will be adjusted if number of observed is
         # outside this range.
-        self.min_elements = rospy.get_param("/statistics_window_min_elements", 10)
-        self.max_elements = rospy.get_param("/statistics_window_max_elements", 100)
+        self.min_elements = rospy.get_param(
+            "/statistics_window_min_elements", 10)
+        self.max_elements = rospy.get_param(
+            "/statistics_window_max_elements", 100)
 
         # Range of window length, in seconds
         self.min_window = rospy.get_param("/statistics_window_min_size", 4)
@@ -101,13 +104,15 @@ class SubscriberStatisticsLogger():
             # create ConnectionStatisticsLogger for new connections
             logger = self.connections.get(publisher)
             if logger is None:
-                logger = ConnectionStatisticsLogger(self.subscriber_name, rospy.get_name(), publisher)
+                logger = ConnectionStatisticsLogger(
+                    self.subscriber_name, rospy.get_name(), publisher)
                 self.connections[publisher] = logger
 
             # delegate stuff to that instance
             logger.callback(self, msg, stat_bytes)
         except Exception as e:
-            rospy.logerr("Unexpected error during statistics measurement: %s", str(e))
+            rospy.logerr(
+                "Unexpected error during statistics measurement: %s", str(e))
 
     def shutdown(self):
         for logger in self.connections.values():
@@ -139,7 +144,8 @@ class ConnectionStatisticsLogger():
         self.subscriber = subscriber
         self.publisher = publisher
 
-        self.pub = rospy.Publisher("/statistics", TopicStatistics, queue_size=10)
+        self.pub = rospy.Publisher(
+            "/statistics", TopicStatistics, queue_size=10)
 
         # reset window
         self.last_pub_time = rospy.Time(0)
@@ -184,8 +190,10 @@ class ConnectionStatisticsLogger():
 
         # we can only calculate message age if the messages did contain Header fields.
         if len(self.age_list_) > 0:
-            msg.stamp_age_mean = rospy.Duration(sum(self.age_list_, rospy.Duration(0)).to_sec() / len(self.age_list_))
-            variance = sum((rospy.Duration((msg.stamp_age_mean - value).to_sec() ** 2) for value in self.age_list_), rospy.Duration(0)) / len(self.age_list_)
+            msg.stamp_age_mean = rospy.Duration(
+                sum(self.age_list_, rospy.Duration(0)).to_sec() / len(self.age_list_))
+            variance = sum((rospy.Duration((msg.stamp_age_mean - value).to_sec() ** 2)
+                            for value in self.age_list_), rospy.Duration(0)) / len(self.age_list_)
             msg.stamp_age_stddev = rospy.Duration(sqrt(variance.to_sec()))
             msg.stamp_age_max = max(self.age_list_)
         else:
@@ -195,9 +203,12 @@ class ConnectionStatisticsLogger():
 
         # computer period/frequency. we need at least two messages within the window to do this.
         if len(self.arrival_time_list_) > 1:
-            periods = [j - i for i, j in zip(self.arrival_time_list_[:-1], self.arrival_time_list_[1:])]
-            msg.period_mean = rospy.Duration(sum(periods, rospy.Duration(0)).to_sec() / len(periods))
-            variance = sum((rospy.Duration((msg.period_mean - value).to_sec() ** 2) for value in periods), rospy.Duration(0)) / len(periods)
+            periods = [
+                j - i for i, j in zip(self.arrival_time_list_[:-1], self.arrival_time_list_[1:])]
+            msg.period_mean = rospy.Duration(
+                sum(periods, rospy.Duration(0)).to_sec() / len(periods))
+            variance = sum((rospy.Duration((msg.period_mean - value).to_sec() ** 2)
+                            for value in periods), rospy.Duration(0)) / len(periods)
             msg.period_stddev = rospy.Duration(sqrt(variance.to_sec()))
             msg.period_max = max(periods)
         else:
